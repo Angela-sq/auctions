@@ -1,12 +1,17 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-
 class User(AbstractUser):
     username = models.CharField(max_length=64, unique=True)
     email = models.CharField(max_length=64, unique=True)
     password = models.CharField(max_length=64)
 
 class Listing(models.Model):
+    seller = models.CharField(max_length=64)
     title = models.CharField(max_length=64)
-    description = models.TextField(max_length=1000)
+    description = models.TextField()
+    category = models.CharField(max_length=64)
+    starting_bid = models.IntegerField(default=0)
+    URL = models.CharField(
+        max_length=200, default=None)
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -3,5 +3,25 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    {% if message %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+    {% if empty %}
+        <h3>No Active Listings available</h3>
+    {% else %}
+        {% for product in products reversed %}
+            <div style="padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px; border:1px solid black;">
+                <h3 style="text-align: center">
+                    <img src="{{ product.URL }}" style="height: 400px; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;">
+                </h3>
+                <div>
+                    <h3 style="text-align: center">{{ product.title }}</h3>
+                    <h4 style="text-align: center">Price: {{ product.starting_bid }}</h4>
+                    <h5 style="text-align: center">Product Description: {{ product.description }}</h5>
+                    <h6 style="text-align: center">Sold by {{ product.seller }}</h6>
+                    <h6 style="text-align: center">Created {{ product.created_at }}</h6>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
 {% endblock %}
