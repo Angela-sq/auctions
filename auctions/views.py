@@ -1,4 +1,3 @@
-from .models import Listing
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
@@ -6,7 +5,46 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+
+from .models import *
+
+# View to add or remove products to watchlists
+@login_required(login_url='/login')
+def addtowatchlist(request, product_id):
+
+    obj = Watchlist.objects.filter(
+        listingid=product_id, user=request.user.username)
+    comments = Comment.objects.filter(listingid=product_id)
+    # checking if it is already added to the watchlist
+    if obj:
+        # if its already there then user wants to remove it from watchlist
+        obj.delete()
+        # returning the updated content
+        product = Listing.objects.get(id=product_id)
+        added = Watchlist.objects.filter(
+            listingid=product_id, user=request.user.username)
+        return render(request, "auctions/viewlisting.html", {
+            "product": product,
+            "added": added,
+            "comments": comments
+        })
+    else:
+        # if it not present then the user wants to add it to watchlist
+        obj = Watchlist()
+        obj.user = request.user.username
+        obj.listingid = product_id
+        obj.save()
+        # returning the updated content
+        product = Listing.objects.get(id=product_id)
+        added = Watchlist.objects.filter(
+            listingid=product_id, user=request.user.username)
+        return render(request, "auctions/viewlisting.html", {
+            "product": product,
+            "added": added,
+            "comments": comments
+        })
+
+
 
 def categories(request):
     # list of products available
@@ -25,6 +63,77 @@ def category(request, categ):
         "products": categ_products
     })
 
+# view to display individual listing
+@login_required(login_url='/login')
+def viewlisting(request, product_id):
+    # if the user submits his bid
+    comments = Comment.objects.filter(listingid=product_id)
+    if request.method == "POST":
+        item = Listing.objects.get(id=product_id)
+        newbid = int(request.POST.get('newbid'))
+        # checking if the newbid is greater than or equal to current bid
+        if item.starting_bid >= newbid:
+            product = Listing.objects.get(id=product_id)
+            return render(request, "auctions/viewlisting.html", {
+                "product": product,
+                "message": "Your bid should be higher than the current one.",
+                "msg_type": "danger",
+                "comments": comments
+            })
+        # if bid is greater then updating in Listings table
+        else:
+            item.starting_bid = newbid
+            item.save()
+            # saving the bid in Bid model
+            bidobj = Bid.objects.filter(listingid=product_id)
+            if bidobj:
+                bidobj.delete()
+            obj = Bid()
+            obj.user = request.user.username
+            obj.title = item.title
+            obj.listingid = product_id
+            obj.bid = newbid
+            obj.save()
+            product = Listing.objects.get(id=product_id)
+            return render(request, "auctions/viewlisting.html", {
+                "product": product,
+                "message": "Your Bid is added.",
+                "msg_type": "success",
+                "comments": comments
+            })
+    # accessing individual listing GET
+    else:
+        product = Listing.objects.get(id=product_id)
+        added = Watchlist.objects.filter(
+            listingid=product_id, user=request.user.username)
+        return render(request, "auctions/viewlisting.html", {
+            "product": product,
+            "added": added,
+            "comments": comments
+        })
+
+
+# view for dashboard
+@login_required(login_url='/login')
+def dashboard(request):
+    winners = Winner.objects.filter(winner=request.user.username)
+    # checking for watchlist
+    lst = Watchlist.objects.filter(user=request.user.username)
+    # list of products available in WinnerModel
+    present = False
+    prodlst = []
+    i = 0
+    if lst:
+        present = True
+        for item in lst:
+            product = Listing.objects.get(id=item.listingid)
+            prodlst.append(product)
+    print(prodlst)
+    return render(request, "auctions/dashboard.html", {
+        "product_list": prodlst,
+        "present": present,
+        "products": winners
+    })
 
 def new_listing(request):
     if request.method == "POST":
@@ -36,11 +145,7 @@ def new_listing(request):
         item.description = request.POST.get('description')
         item.category = request.POST.get('category')
         item.starting_bid = request.POST.get('starting_bid')
-        # submitting data of the image link is optional
-        if request.POST.get('URL'):
-            item.URL = request.POST.get('URL')
-        else:
-            item.URL = "https://www.aust-biosearch.com.au/wp-content/themes/titan/images/noimage.gif"
+        item.URL = request.POST.get('URL')
         # saving the data into the database
         item.save()
         return render(request, "auctions/index.html")
@@ -111,3 +216,78 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+# view for comments
+@login_required(login_url='/login')
+def addcomment(request, product_id):
+    obj = Comment()
+    obj.comment = request.POST.get("comment")
+    obj.user = request.user.username
+    obj.listingid = product_id
+    obj.save()
+    # returning the updated content
+    print("displaying comments")
+    comments = Comment.objects.filter(listingid=product_id)
+    product = Listing.objects.get(id=product_id)
+    added = Watchlist.objects.filter(
+        listingid=product_id, user=request.user.username)
+    return render(request, "auctions/viewlisting.html", {
+        "product": product,
+        "added": added,
+        "comments": comments
+    })
+
+# view to see closed listings
+@login_required(login_url='/login')
+def closedlisting(request):
+    # list of products available in WinnerModel
+    winners = Winner.objects.all()
+    # checking if there are any products
+    empty = False
+    if len(winners) == 0:
+        empty = True
+    return render(request, "auctions/closedlisting.html", {
+        "products": winners,
+        "empty": empty
+    })
+
+
+# view when the user wants to close the bid
+@login_required(login_url='/login')
+def closebid(request, product_id):
+    winobj = Winner()
+    listobj = Listing.objects.get(id=product_id)
+    bidobj = Bid.objects.get(listingid=product_id)
+    winobj.owner = request.user.username
+    winobj.winner = bidobj.user
+    winobj.listingid = product_id
+    winobj.winprice = bidobj.bid
+    winobj.title = bidobj.title
+    winobj.save()
+    message = "Bid Closed"
+    msg_type = "success"
+    # removing from Bid
+    bidobj.delete()
+    # removing from watchlist
+    if Watchlist.objects.filter(listingid=product_id):
+        watchobj = Watchlist.objects.filter(listingid=product_id)
+        watchobj.delete()
+    # removing from Comment
+    if Comment.objects.filter(listingid=product_id):
+        commentobj = Comment.objects.filter(listingid=product_id)
+        commentobj.delete()
+    # removing from Listing
+    listobj.delete()
+    # retrieving the new products list after adding and displaying
+    # list of products available in WinnerModel
+    winners = Winner.objects.all()
+    # checking if there are any products
+    empty = False
+    if len(winners) == 0:
+        empty = True
+    return render(request, "auctions/closedlisting.html", {
+        "products": winners,
+        "empty": empty,
+        "message": message,
+        "msg_type": msg_type
+    })
