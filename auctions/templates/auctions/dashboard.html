@@ -1,0 +1,50 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if message %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+
+    <h2>Dashboard</h2>
+
+    <h3 style="text-align: center">
+        <img src="https://www.greenecountyfoundation.org/wp-content/uploads/2019/09/Profile-Icon.png" style="height: 200px; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;">
+    </h3>
+    <h4 style="text-align: center" class="font-weight-bold">{{request.user.username}}</h4>
+    <h6 style="text-align: center" class="font-weight-bold my-3">{{request.user.email}}</h6>
+
+    <h4 style="text-align: center">Your Watchlist</h4>
+    {% if present %}
+        {% for item in product_list %}
+            <div style="text-align: center; padding-top: 30px; padding-right: 10px; padding-bottom: 30px; padding-left: 10px;">
+                <a href="{% url 'viewlisting' item.id %}"><h3><strong>{{item.title}}</strong></h3></a>
+                <div>
+                    <h5>Seller : {{item.seller}}</h5>
+                    <h5>Price : {{item.starting_bid}}</h5>
+                    <h5>{{item.created_at}}</h5>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div>
+            <p style="text-align: center">No Listings Found</p>
+        </div>
+    {% endif %}
+
+    <h4 style="text-align: center">Listings You Won</h4>
+    {% if not products %}
+        <div>
+            <p style="text-align: center">No Listings Found</p>
+        </div>
+    {% else %}
+        {% for product in products %}
+            <div style="text-align: center; padding-top: 10px; padding-bottom: 10px;">
+                <h4><strong>{{product.title}}</strong></h4>
+                <p>Congrats, you won!</p>
+                <h5>Seller : {{product.owner}}</h5>
+                <h5>Winner : {{product.winner}}</h5>
+                <h5>${{product.winprice}}</h5>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

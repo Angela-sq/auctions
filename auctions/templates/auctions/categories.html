@@ -1,0 +1,15 @@
+{% extends "auctions/layout.html" %}
+
+
+{% block body %}
+    <h2>Categories</h2>
+    <ul class="list-group">
+                    <a style="margin-bottom: 20px" href="{% url 'category' 'fashion' %}"><li class="list-group-item">Fashion</li></a>
+                    <a style="margin-bottom: 20px" href="{% url 'category' 'home' %}"><li class="list-group-item">Home</li></a>
+                    <a style="margin-bottom: 20px" href="{% url 'category' 'tools' %}"><li class="list-group-item">Tools</li></a>
+                    <a style="margin-bottom: 20px" href="{% url 'category' 'toys' %}"><li class="list-group-item">Toys</li></a>
+                    <a style="margin-bottom: 20px" href="{% url 'category' 'electronics' %}"><li class="list-group-item">Electronics</li></a>
+                    <a style="margin-bottom: 20px" href="{% url 'category' 'accessories' %}"><li class="list-group-item">Accessories</li></a>
+                    <a style="margin-bottom: 20px" href="{% url 'category' 'books' %}"><li class="list-group-item">Books</li></a>
+    </ul>
+{% endblock %}

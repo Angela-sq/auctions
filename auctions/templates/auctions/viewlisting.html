@@ -1,0 +1,78 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if message %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+
+    <h1 style="text-align: center" ><strong>{{product.title}}</strong></h1>
+    <div style="text-align: center; padding-top: 5px; padding-bottom: 10px;">
+        <h3>
+            <img src="{{ product.URL }}" style="height: 300px; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;">
+        </h3>
+        <h5><strong>Description : </strong> {{product.description}}</h5>
+        <h5><strong>Category : </strong>{{product.category}}</h5>
+        <h5><strong>Current Bid Price : </strong>${{product.starting_bid}}</h5>
+        <h5><strong>Seller : </strong>{{product.seller}}</h5>
+        <h5><strong>Created on : </strong>{{product.created_at}}</h5>
+    </div>
+
+    {% if user.username != product.seller %}
+        <p class="lead" align="justify"><strong>Place your Bid : </strong></p>
+        <form action="{% url 'viewlisting' product.id %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <input class="form-control" type="text" name="newbid" placeholder="Your Bid">
+            </div>
+            <p align="justify"><input class="btn btn-primary" type="submit" value="Submit"></p>
+        </form>
+    {% endif %}
+
+    <div style="text-align: center; padding-top: 20px;">
+        {% if added %}
+            <!-- <input type="button" class="btn btn-danger btn-lg" name="remove" placeholder="Remove from Watchlist"> -->
+            <a href="{% url 'addtowatchlist' product.id %}" class="btn btn-danger btn-lg" name="remove">Remove from Watchlist</a>
+        {% else %}
+            <!-- <input type="button" class="btn btn-success btn-lg" name="addto" placeholder="Add to Watchlist"> -->
+            <a href="{% url 'addtowatchlist' product.id %}" class="btn btn-success btn-lg" name="addto">Add to Watchlist</a>
+        {% endif %}
+    </div>
+
+    <div style="padding-top: 20px; padding-right: 10px; padding-bottom: 20px; padding-left: 10px;">
+    <h2>Comments</h2>
+
+        {% if comments %}
+
+            {% for comment in comments %}
+                <div style="padding-top: 5px; padding-bottom: 5px;">
+                    <h5>{{comment.user}}</h5>
+                    <div>
+                        <p class="lead">{{comment.comment}}</p>
+                        <p>{{comment.timestamp}}</p>
+                    </div>
+                </div>
+            {% endfor %}
+
+        {% else %}
+            <p class="lead">No comments yet. Be the first one to leave a comment!</p>
+        {% endif %}
+    </div>
+
+    <div>
+    <h2>Add A Comment</h2>
+        <form action="{% url 'addcomment' product.id %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <textarea class="form-control" name="comment" rows="4" placeholder="Your Comment"></textarea>
+            </div>
+            <p align="justify"><input class="btn btn-primary" type="submit" value="Submit"></p>
+        </form>
+    </div>
+
+    {% if user.username == product.seller %}
+        <div style="text-align: center; margin-bottom: 20px;">
+            <a href="{% url 'closebid' product.id %}" class="btn btn-primary"> Close Bid </a>
+        </div>
+        <h6 style="text-align: center; margin-bottom: 60px;">Attention: Please wait until another user bids before closing the listing. </h6>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>New Listing</h2>
+
+    <form action="{% url 'create' %}" method="POST">
+        {% csrf_token %}
+        <div>
+            <label>Title of Listing:</label>
+        </div>
+
+        <div class="form-group">
+            <input class="form-control" autofocus type="text" name="title" placeholder="Enter your title here...">
+        </div>
+
+        <div>
+            <label>Product Description:</label>
+        </div>
+
+        <div class="form-group">
+            <textarea class="form-control" autofocus type="text" name="description" placeholder="Enter your description here..." rows="10" cols="155">{{ edit_page_contents }}</textarea>
+        </div>
+
+        <div>
+            <label>Starting Bid:</label>
+        </div>
+
+        <div class="form-group">
+            <input class="form-control" autofocus type="text" name="starting_bid" placeholder="Starting Bid...">
+        </div>
+
+        <div>
+            <label>Product Image URL (Optional):</label>
+        </div>
+
+        <div class="form-group">
+            <input class="form-control" autofocus type="text" name="URL" placeholder="Paste your URL here...">
+        </div>
+
+        <div>
+            <label>Category:</label>
+        </div>
+
+        <div class="form-group">
+            <select class="form-control" name="category" placeholder="Category" required>
+                <option value="select">Select a Category</option>
+                <option value="fashion">Fashion</option>
+                <option value="tools">Tools</option>
+                <option value="toys">Toys</option>
+                <option value="fashion">Home</option>
+                <option value="electronics">Electronics</option>
+                <option value="accessories">Accessories</option>
+                <option value="books">Books</option>
+                <option value="sports">Sports</option>
+            </select>
+        </div>
+
+           <input class="btn btn-primary" type="submit" value="Create">
+
+    </form>
+{% endblock %}
